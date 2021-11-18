@@ -8,17 +8,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/user")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @PostMapping
+    @PostMapping("/registration")
     public ResponseEntity<Message> registration(@RequestBody RegistrationUserDTO userDTO){
-        return new ResponseEntity<>(userService.registration(userDTO), HttpStatus.OK);
+        userService.registration(userDTO);
+        return new ResponseEntity<>(new Message("User was successfully registered."), HttpStatus.OK);
     }
 
 }

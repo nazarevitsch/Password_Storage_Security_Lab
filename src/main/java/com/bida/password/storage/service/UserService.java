@@ -4,6 +4,7 @@ import com.bida.password.storage.domain.Message;
 import com.bida.password.storage.domain.MyUserDetails;
 import com.bida.password.storage.domain.User;
 import com.bida.password.storage.domain.dto.RegistrationUserDTO;
+import com.bida.password.storage.exception.BadRequestException;
 import com.bida.password.storage.exception.NotFoundException;
 import com.bida.password.storage.repository.UserRepository;
 import com.bida.password.storage.validation.EmailValidator;
@@ -28,10 +29,14 @@ public class UserService implements UserDetailsService {
     private PasswordValidator passwordValidator;
 
 
-    public Message registration(RegistrationUserDTO userDTO) {
+    public void registration(RegistrationUserDTO userDTO) {
         emailValidator.validateEmail(userDTO.getEmail());
         passwordValidator.validatePassword(userDTO.getPassword());
-        return new Message("User was successfully registered.");
+
+        if (userRepository.findUserByEmail(userDTO.getEmail()) != null) {
+            throw new BadRequestException("User with email: " + userDTO.getEmail() + " is already existed.");
+        }
+
     }
 
     @Override
