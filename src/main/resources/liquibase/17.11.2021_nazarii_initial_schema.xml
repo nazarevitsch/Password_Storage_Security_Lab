@@ -18,7 +18,7 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user"/>
             </column>
             <column name="u_email" type="varchar(40)"/>
-            <column name="u_password" type="varchar(40)"/>
+            <column name="u_password" type="varchar(100)"/>
         </createTable>
     </changeSet>
 

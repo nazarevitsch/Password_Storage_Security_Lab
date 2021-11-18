@@ -3,7 +3,7 @@ package com.bida.password.storage.domain.dto;
 import lombok.Data;
 
 @Data
-public class RegistrationUserDTO {
+public class UserRegistrationDTO {
 
     private String email;
     private String password;
