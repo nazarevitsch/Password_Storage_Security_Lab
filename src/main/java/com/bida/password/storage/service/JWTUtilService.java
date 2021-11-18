@@ -1,6 +1,5 @@
 package com.bida.password.storage.service;
 
-import com.bida.password.storage.domain.MyUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

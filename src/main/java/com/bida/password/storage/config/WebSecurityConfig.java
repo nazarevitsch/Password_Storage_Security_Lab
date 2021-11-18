@@ -3,6 +3,7 @@ package com.bida.password.storage.config;
 import com.bida.password.storage.filters.JWTRequestFilter;
 import com.bida.password.storage.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -30,6 +31,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private JWTRequestFilter jwtRequestFilter;
 
+    @Value("${hash.seed}")
+    private int seed;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
@@ -51,7 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(15);
+        return new BCryptPasswordEncoder(seed);
     }
 
     @Override
