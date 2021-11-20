@@ -6,14 +6,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class PasswordValidator {
 
-    private static final String KEYBOARD_PATTERN_NUMBERS = "01234567890";
-    private static final String KEYBOARD_PATTERN_LETTERS = "qwertyuiopasdfghjklzxcvbnm";
-    private static final int MIN_UPPER_CASE_LETTERS_AMOUNT = 2;
-    private static final int MIN_LOWER_CASE_LETTERS_AMOUNT = 2;
     private static final int MIN_PASSWORD_LENGTH = 10;
     private static final int MAX_PASSWORD_LENGTH = 30;
 
-    public void validatePassword(String password) {
+    private static final int MIN_UPPER_CASE_LETTERS_AMOUNT = 2;
+    private static final int MIN_LOWER_CASE_LETTERS_AMOUNT = 2;
+    private static final int MIN_SPECIAL_CHARACTER_AMOUNT = 2;
+    private static final int MIN_DIGIT_AMOUNT = 2;
+
+    private static final String KEYBOARD_PATTERN_NUMBERS = "01234567890";
+    private static final String KEYBOARD_PATTERN_CHARACTER = "qwertyuiopasdfghjklzxcvbnm";
+
+    private static final String ALLOWED_SPECIAL_CHARS = "/*!@#$%^&*(){}_[]|?<>,.";
+
+
+    public void validatePassword(String password, String email) {
         if (password.length() < MIN_PASSWORD_LENGTH) {
             throw new BadRequestException("Password is too small, min: " + MIN_PASSWORD_LENGTH);
         }
@@ -24,30 +31,64 @@ public class PasswordValidator {
         char[] passwordArray = password.toCharArray();
         int upperLetterCount = 0;
         int lowerLettersCount = 0;
+        int specialCharacterCount = 0;
+        int digitCount = 0;
         for (int i = 0; i < passwordArray.length; i++) {
+            if (Character.isLowerCase(passwordArray[i])) {
+                lowerLettersCount++;
+                continue;
+            }
             if (Character.isUpperCase(passwordArray[i])) {
                 upperLetterCount++;
-            } else {
-                lowerLettersCount++;
+                continue;
             }
+            if (Character.isDigit(passwordArray[i])) {
+                digitCount++;
+                continue;
+            }
+            if (ALLOWED_SPECIAL_CHARS.contains(String.valueOf(passwordArray[i]))){
+                specialCharacterCount++;
+                continue;
+            }
+            throw new BadRequestException("Password contains non allowed chars.");
         }
+
         if (upperLetterCount < MIN_UPPER_CASE_LETTERS_AMOUNT) {
             throw new BadRequestException("Password has to contain at last " + MIN_UPPER_CASE_LETTERS_AMOUNT + " letters in upper case.");
         }
         if (lowerLettersCount < MIN_LOWER_CASE_LETTERS_AMOUNT) {
             throw new BadRequestException("Password has to contain at last " + MIN_LOWER_CASE_LETTERS_AMOUNT + " letters in lower case.");
         }
+        if (digitCount < MIN_DIGIT_AMOUNT) {
+            throw new BadRequestException("Password has to contain at last " + MIN_DIGIT_AMOUNT + " digit.");
+        }
+        if (specialCharacterCount < MIN_SPECIAL_CHARACTER_AMOUNT) {
+            throw new BadRequestException("Password has to contain at last " + MIN_SPECIAL_CHARACTER_AMOUNT + " special characters.");
+        }
 
-
-
-        for (int i = 0; i < KEYBOARD_PATTERN_LETTERS.length() - 3; i++) {
-            if (password.contains(KEYBOARD_PATTERN_LETTERS.substring(i, i + 4))) {
+        for (int i = 0; i < KEYBOARD_PATTERN_CHARACTER.length() - 3; i++) {
+            if (password.contains(KEYBOARD_PATTERN_CHARACTER.substring(i, i + 4))) {
                 throw new BadRequestException("Password can't contain keyboard sequence more then 3.");
             }
         }
         for (int i = 0; i < KEYBOARD_PATTERN_NUMBERS.length() - 3; i++) {
             if (password.contains(KEYBOARD_PATTERN_NUMBERS.substring(i, i + 4))) {
                 throw new BadRequestException("Password can't contain keyboard sequence more then 3.");
+            }
+        }
+
+        String firstPartOfEmail = email.split("@")[0];
+        for (int i = 0; i < firstPartOfEmail.length() - 3; i++) {
+            if (password.contains(firstPartOfEmail.substring(i, i + 4))) {
+                throw new BadRequestException("Password should not contain parts of email.");
+            }
+        }
+
+        String cutPassword;
+        for (int i = 0; i < password.length() - 3; i++) {
+            cutPassword = (password.substring(0, i) + password.substring(i + 4)).toLowerCase();
+            if (cutPassword.contains(password.substring(i, i + 4).toLowerCase())) {
+                throw new BadRequestException("Password should not contain repeated parts.");
             }
         }
     }
