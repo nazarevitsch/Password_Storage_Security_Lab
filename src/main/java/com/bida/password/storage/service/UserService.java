@@ -48,9 +48,9 @@ public class UserService implements UserDetailsService {
         if (userRepository.findUserByEmail(userDTO.getEmail()) != null) {
             throw new BadRequestException("User with email: " + userDTO.getEmail() + " is already existed.");
         }
-//        User user = userMapper.dtoToEntity(userDTO);
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
-//        userRepository.save(user);
+        User user = userMapper.dtoToEntity(userDTO);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
     }
 
     public Token login(UserLoginDTO userDTO) {
