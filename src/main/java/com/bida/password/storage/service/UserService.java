@@ -11,6 +11,7 @@ import com.bida.password.storage.mapper.UserMapper;
 import com.bida.password.storage.repository.UserRepository;
 import com.bida.password.storage.validation.EmailValidator;
 import com.bida.password.storage.validation.PasswordValidator;
+import liquibase.pro.packaged.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -40,6 +41,8 @@ public class UserService implements UserDetailsService {
     private JWTUtilService jwtUtilService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private DataEncryptionService dataEncryptionService;
 
     public void registration(UserRegistrationDTO userDTO) {
         emailValidator.validateEmail(userDTO.getEmail());
@@ -50,6 +53,11 @@ public class UserService implements UserDetailsService {
         }
         User user = userMapper.dtoToEntity(userDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        var encryptedCard = dataEncryptionService.encrypt(user.getCredit_card(), userDTO.getPassword());
+        if (encryptedCard != null) {
+            user.setCredit_card(encryptedCard.cipheredText);
+            user.setDek(encryptedCard.key);
+        }
         userRepository.save(user);
     }
 
