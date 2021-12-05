@@ -1,11 +1,8 @@
 package com.bida.password.storage.service;
 
-import liquibase.pro.packaged.G;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidAlgorithmParameterException;
@@ -14,12 +11,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.util.Base64;
 
 @Service
 public class AesCgmCipher {
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final SecureRandom secureRandom = new SecureRandom();
+
     public static SecretKey generateKey(int n) throws NoSuchAlgorithmException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(n);

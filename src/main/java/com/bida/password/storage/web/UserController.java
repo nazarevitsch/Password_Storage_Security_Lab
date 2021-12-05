@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
@@ -43,9 +42,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserInfo> me () {
-        var user = userService.findUserByEmail("sash33a2@gmail.com"); // HARDCODE
-        var creditCard = userService.decryptValueByDek(user.getCredit_card(), user.getDek());
-        return new ResponseEntity<>(new UserInfo(creditCard, user.getEmail()), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getUserInfo(), HttpStatus.OK);
     }
 
 }

@@ -3,6 +3,7 @@ package com.bida.password.storage.service;
 import com.bida.password.storage.domain.MyUserDetails;
 import com.bida.password.storage.domain.Token;
 import com.bida.password.storage.domain.User;
+import com.bida.password.storage.domain.UserInfo;
 import com.bida.password.storage.domain.dto.UserLoginDTO;
 import com.bida.password.storage.domain.dto.UserRegistrationDTO;
 import com.bida.password.storage.exception.BadRequestException;
@@ -11,11 +12,11 @@ import com.bida.password.storage.mapper.UserMapper;
 import com.bida.password.storage.repository.UserRepository;
 import com.bida.password.storage.validation.EmailValidator;
 import com.bida.password.storage.validation.PasswordValidator;
-import liquibase.pro.packaged.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -59,6 +60,12 @@ public class UserService implements UserDetailsService {
             user.setDek(encryptedResult.key);
         }
         userRepository.save(user);
+    }
+
+    public UserInfo getUserInfo() {
+        MyUserDetails details = ((MyUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        var decryptedCard = decryptValueByDek(details.getUser().getCredit_card(), details.getUser().getDek());
+        return new UserInfo(decryptedCard, details.getUsername());
     }
 
     public Token login(UserLoginDTO userDTO) {
