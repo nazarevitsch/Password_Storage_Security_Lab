@@ -3,6 +3,7 @@ package com.bida.password.storage.service;
 import com.bida.password.storage.domain.MyUserDetails;
 import com.bida.password.storage.domain.Token;
 import com.bida.password.storage.domain.User;
+import com.bida.password.storage.domain.UserInfo;
 import com.bida.password.storage.domain.dto.UserLoginDTO;
 import com.bida.password.storage.domain.dto.UserRegistrationDTO;
 import com.bida.password.storage.exception.BadRequestException;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -40,6 +42,8 @@ public class UserService implements UserDetailsService {
     private JWTUtilService jwtUtilService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private DataEncryptionService dataEncryptionService;
 
     public void registration(UserRegistrationDTO userDTO) {
         emailValidator.validateEmail(userDTO.getEmail());
@@ -50,7 +54,18 @@ public class UserService implements UserDetailsService {
         }
         User user = userMapper.dtoToEntity(userDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        var encryptedResult = dataEncryptionService.encrypt(user.getCredit_card(), userDTO.getPassword());
+        if (encryptedResult != null) {
+            user.setCredit_card(encryptedResult.cipheredText);
+            user.setDek(encryptedResult.key);
+        }
         userRepository.save(user);
+    }
+
+    public UserInfo getUserInfo() {
+        MyUserDetails details = ((MyUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        var decryptedCard = decryptValueByDek(details.getUser().getCredit_card(), details.getUser().getDek());
+        return new UserInfo(decryptedCard, details.getUsername());
     }
 
     public Token login(UserLoginDTO userDTO) {
@@ -75,5 +90,9 @@ public class UserService implements UserDetailsService {
     public User findUserByEmail(String email){
         return Optional.of(userRepository.findUserByEmail(email))
                 .orElseThrow(() -> new NotFoundException("User with email: " + email + " wasn't found."));
+    }
+
+    public String decryptValueByDek (String val, String dek) {
+        return dataEncryptionService.decrypt(val, dek);
     }
 }

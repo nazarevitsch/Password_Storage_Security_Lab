@@ -1,6 +1,7 @@
 package com.bida.password.storage.web;
 
 import com.bida.password.storage.domain.Message;
+import com.bida.password.storage.domain.UserInfo;
 import com.bida.password.storage.domain.dto.UserLoginDTO;
 import com.bida.password.storage.domain.dto.UserRegistrationDTO;
 import com.bida.password.storage.service.UserService;
@@ -8,10 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -40,6 +38,11 @@ public class UserController {
         cookie.setPath("/");
         response.addCookie(cookie);
         return new ResponseEntity<>(userService.login(userDTO), HttpStatus.OK);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserInfo> me () {
+        return new ResponseEntity<>(userService.getUserInfo(), HttpStatus.OK);
     }
 
 }
