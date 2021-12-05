@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -23,21 +24,31 @@ public class DataEncryptionService {
     }
 
     public EncryptionResult encrypt(String input, String password) {
-        var iv = aesCgmCipher.generateIv(16);
         var salt = new byte[128];
+        var b64Encoder = Base64.getEncoder();
         new SecureRandom().nextBytes(salt);
         try {
-            var key = aesCgmCipher.getKeyFromPassword(password, new String(salt));
-            var cipheredText = aesCgmCipher.encrypt(input, key, iv);
-            var keyB64 = Base64.getEncoder().encodeToString(key.getEncoded());
-            return new EncryptionResult(cipheredText + "::" + new String(iv.getIV()), awsKmsService.encrypt(keyB64));
-        } catch (NoSuchPaddingException | InvalidKeySpecException |
-                IllegalBlockSizeException | BadPaddingException |
-                InvalidKeyException | InvalidAlgorithmParameterException |
-                NoSuchAlgorithmException e) {
+            var iv = aesCgmCipher.generateIv(16);
+            var key = aesCgmCipher.getKeyFromPassword(password, salt);
+            var cipheredTextB64 = b64Encoder.encodeToString(aesCgmCipher.encrypt(input, key, iv));
+            return new EncryptionResult(cipheredTextB64 + "::" + b64Encoder.encodeToString(iv.getIV()), b64Encoder.encodeToString(awsKmsService.encrypt(key.getEncoded())));
+        } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
 
+    public String decrypt(String cipherText, String dek) {
+        var b64Decoder = Base64.getDecoder();
+        var cipherTextSplit = cipherText.split("::");
+        var iv = b64Decoder.decode(cipherTextSplit[1]);
+        var key = awsKmsService.decrypt(b64Decoder.decode(dek));
+        var ct = b64Decoder.decode(cipherTextSplit[0]);
+        try {
+            return aesCgmCipher.decrypt(ct, aesCgmCipher.generateKey(key), aesCgmCipher.generateIv(iv));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

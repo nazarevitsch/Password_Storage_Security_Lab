@@ -53,10 +53,10 @@ public class UserService implements UserDetailsService {
         }
         User user = userMapper.dtoToEntity(userDTO);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        var encryptedCard = dataEncryptionService.encrypt(user.getCredit_card(), userDTO.getPassword());
-        if (encryptedCard != null) {
-            user.setCredit_card(encryptedCard.cipheredText);
-            user.setDek(encryptedCard.key);
+        var encryptedResult = dataEncryptionService.encrypt(user.getCredit_card(), userDTO.getPassword());
+        if (encryptedResult != null) {
+            user.setCredit_card(encryptedResult.cipheredText);
+            user.setDek(encryptedResult.key);
         }
         userRepository.save(user);
     }
@@ -83,5 +83,9 @@ public class UserService implements UserDetailsService {
     public User findUserByEmail(String email){
         return Optional.of(userRepository.findUserByEmail(email))
                 .orElseThrow(() -> new NotFoundException("User with email: " + email + " wasn't found."));
+    }
+
+    public String decryptValueByDek (String val, String dek) {
+        return dataEncryptionService.decrypt(val, dek);
     }
 }

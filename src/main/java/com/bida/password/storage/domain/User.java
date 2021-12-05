@@ -30,6 +30,6 @@ public class User {
 
     @Column(name = "u_credit_card")
     private String credit_card;
-    @Column(name = "u_dek")
+    @Column(name = "u_dek", columnDefinition = "TEXT")
     private String dek;
 }

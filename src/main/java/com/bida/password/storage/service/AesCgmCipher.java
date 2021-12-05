@@ -1,5 +1,6 @@
 package com.bida.password.storage.service;
 
+import liquibase.pro.packaged.G;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.*;
@@ -25,11 +26,15 @@ public class AesCgmCipher {
         return keyGenerator.generateKey();
     }
 
-    public SecretKey getKeyFromPassword(String password, String salt)
+    public SecretKey generateKey(byte [] seed) {
+        return new SecretKeySpec(seed, "AES");
+    }
+
+    public SecretKey getKeyFromPassword(String password, byte[] salt)
             throws NoSuchAlgorithmException, InvalidKeySpecException
     {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
+        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 256);
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
     }
 
@@ -39,26 +44,28 @@ public class AesCgmCipher {
         return new GCMParameterSpec(128, iv);
     }
 
-    public String encrypt(String input, SecretKey key, GCMParameterSpec iv)
+    public GCMParameterSpec generateIv(byte [] iv){
+        return new GCMParameterSpec(128, iv);
+    }
+
+    public byte[] encrypt(String input, SecretKey key, GCMParameterSpec iv)
             throws NoSuchPaddingException, NoSuchAlgorithmException,
             InvalidAlgorithmParameterException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException
     {
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-        byte[] cipherText = cipher.doFinal(input.getBytes());
-        return Base64.getEncoder().encodeToString(cipherText);
+        return cipher.doFinal(input.getBytes());
     }
 
-    public String decrypt(String cipherText, SecretKey key, GCMParameterSpec iv)
+    public String decrypt(byte[] cipherText, SecretKey key, GCMParameterSpec iv)
             throws NoSuchPaddingException, NoSuchAlgorithmException,
             InvalidAlgorithmParameterException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException
     {
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, key, iv);
-        byte[] plainText = cipher.doFinal(Base64.getDecoder()
-                .decode(cipherText));
+        byte[] plainText = cipher.doFinal(cipherText);
         return new String(plainText);
     }
 }
