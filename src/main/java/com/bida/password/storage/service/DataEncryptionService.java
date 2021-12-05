@@ -27,6 +27,7 @@ public class DataEncryptionService {
         var salt = new byte[128];
         var b64Encoder = Base64.getEncoder();
         new SecureRandom().nextBytes(salt);
+
         try {
             var iv = aesCgmCipher.generateIv(16);
             var key = aesCgmCipher.getKeyFromPassword(password, salt);

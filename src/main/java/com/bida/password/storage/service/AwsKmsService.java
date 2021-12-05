@@ -1,5 +1,7 @@
 package com.bida.password.storage.service;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.encryptionsdk.AwsCrypto;
 import com.amazonaws.encryptionsdk.CommitmentPolicy;
 import com.amazonaws.encryptionsdk.CryptoResult;
@@ -18,12 +20,14 @@ public class AwsKmsService {
     private final AwsCrypto crypto;
     private final KmsMasterKeyProvider keyProvider;
     public AwsKmsService () {
+        var credentials = new BasicAWSCredentials("", "");
         crypto = AwsCrypto
                 .builder()
                 .withCommitmentPolicy(CommitmentPolicy.RequireEncryptRequireDecrypt)
                 .build();
         keyProvider = KmsMasterKeyProvider
                 .builder()
+                .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .buildStrict(KEY_ARN);
     }
 

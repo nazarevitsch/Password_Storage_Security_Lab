@@ -43,7 +43,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserInfo> me () {
-        var user = userService.findUserByEmail("sash3a2@gmail.com"); // HARDCODE
+        var user = userService.findUserByEmail("sash33a2@gmail.com"); // HARDCODE
         var creditCard = userService.decryptValueByDek(user.getCredit_card(), user.getDek());
         return new ResponseEntity<>(new UserInfo(creditCard, user.getEmail()), HttpStatus.OK);
     }
